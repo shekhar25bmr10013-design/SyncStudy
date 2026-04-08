@@ -2,30 +2,23 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Check for stored user on mount
     const storedUser = localStorage.getItem('syncstudy_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    if (storedUser) setUser(JSON.parse(storedUser));
     setLoading(false);
   }, []);
 
-  const login = (userData) => {
-    setUser(userData);
-    localStorage.setItem('syncstudy_user', JSON.stringify(userData));
+  const login = (email, password) => {
+    const mockUser = { uid: '123', name: email.split('@')[0], email: email };
+    setUser(mockUser);
+    localStorage.setItem('syncstudy_user', JSON.stringify(mockUser));
+    return true;
   };
 
   const logout = () => {
@@ -33,17 +26,9 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('syncstudy_user');
   };
 
-  const value = {
-    user,
-    loading,
-    login,
-    logout,
-    isAuthenticated: !!user
-  };
-
   return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
+      {children}
     </AuthContext.Provider>
   );
 };
